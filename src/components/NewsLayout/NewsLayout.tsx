@@ -2,8 +2,18 @@ import { useSelector } from "react-redux";
 import NewsCard from "./NewsCard";
 import type { RootState } from "../../store/store";
 
-const NewsLayout = () => {
-  const news = useSelector((state: RootState) => state.newsReducer.value);
+type Props = {
+  searchTerm: string;
+};
+
+const NewsLayout = ({ searchTerm }: Props) => {
+  const news = useSelector(
+    (state: RootState) => state.newsReducer.value
+  ).filter(
+    (item) =>
+      item.headline.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.newsContent.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4">
