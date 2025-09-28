@@ -9,7 +9,7 @@ function App() {
 
   return (
     <div className="min-h-screen">
-      <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <Navbar setSearchTerm={setSearchTerm} />
       <main>
         {searchTerm.length === 0 ? <Broadcaster /> : null}
         <NewsLayout searchTerm={searchTerm} />

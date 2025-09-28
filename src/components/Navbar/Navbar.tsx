@@ -1,9 +1,21 @@
-type Props = {
-  searchTerm: string;
-  setSearchTerm: any;
-};
+import { useEffect, useState } from "react";
+import useDebounce from "../../hooks/useDebounce";
 
-const Navbar = ({ searchTerm, setSearchTerm }: Props) => {
+interface NavbarProps {
+  setSearchTerm: (searchTerm: string) => void;
+}
+
+type Props = NavbarProps;
+
+const Navbar = ({ setSearchTerm }: Props) => {
+  const [localSearch, setLocalSearch] = useState("");
+
+  const debouncedSearhTerm = useDebounce(localSearch, 500);
+
+  useEffect(() => {
+    setSearchTerm(localSearch);
+  }, [debouncedSearhTerm]);
+
   return (
     <nav className="bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900 text-white shadow-2xl sticky top-0 z-50 backdrop-blur-lg border-b border-white/10">
       <div className="max-w-7xl mx-auto px-6 py-4">
@@ -34,13 +46,13 @@ const Navbar = ({ searchTerm, setSearchTerm }: Props) => {
               <input
                 type="text"
                 placeholder="Search news, headlines, content..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300 hover:bg-white/15"
               />
-              {searchTerm && (
+              {localSearch && (
                 <button
-                  onClick={() => setSearchTerm("")}
+                  onClick={() => setLocalSearch("")}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-white/80 transition-colors duration-200"
                 >
                   <svg
