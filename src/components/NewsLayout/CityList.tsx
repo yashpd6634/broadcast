@@ -19,14 +19,22 @@ export default function CityList({ cityData }: CityListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [favCities, setFavCities] = useState<City[]>([]);
 
-  const handleSearch = (e: any) => {
-    setSearchTerm(e.target.value);
+  // Store original non-fav cities to restore when search is cleared
+  const originalNonFav = useMemo(() => {
+    return cityData.filter(
+      (c) => !favCities.some((f) => f.cityId === c.cityId)
+    );
+  }, [cityData, favCities]);
 
-    if (e.target.value === "") {
-      setCities(cityData);
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value === "") {
+      setCities(originalNonFav);
     } else {
-      const newCities = cityData.filter((city) =>
-        city.name.toLowerCase().includes(e.target.value.toLowerCase())
+      const newCities = originalNonFav.filter((city) =>
+        city.name.toLowerCase().includes(value.toLowerCase())
       );
       setCities(newCities);
     }
@@ -40,10 +48,17 @@ export default function CityList({ cityData }: CityListProps) {
   };
 
   const removeFromFavorites = (cityId: string) => {
-    const fav = favCities.filter((city) => city.cityId !== cityId);
-    setFavCities(fav);
-    const nonFav = favCities.filter((city) => city.cityId === cityId);
-    setCities((prev) => [...prev, nonFav[0]]);
+    const cityToRemove = favCities.find((city) => city.cityId === cityId);
+    if (!cityToRemove) return;
+
+    setFavCities(favCities.filter((city) => city.cityId !== cityId));
+
+    if (
+      !searchTerm ||
+      cityToRemove.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) {
+      setCities((prev) => [...prev, cityToRemove]);
+    }
   };
 
   /* --------------------------------------------------------------- */
@@ -64,7 +79,7 @@ export default function CityList({ cityData }: CityListProps) {
               <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by City ID..."
+                placeholder="Search by City Name..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="w-full text-black pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
