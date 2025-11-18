@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import useDebounce from "../hooks/useDebounce";
+import toastService from "../services/ToastService";
 
 const data = [
   {
@@ -81,6 +82,12 @@ const AutoComplete = ({
     onSelect(d.value);
     setInputValue(d.value);
     setHide(true);
+    toastService.sendToast({
+      title: "Selected",
+      description: `You selected: ${d.value}`,
+      type: "success",
+      position: "topRight",
+    });
   };
 
   const suggestedData = useMemo(
