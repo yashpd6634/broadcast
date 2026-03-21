@@ -6,58 +6,59 @@ export default function ProgressBar() {
   const [progress, setProgress] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const startTimeRef = useRef<number>(0);
-  const pausedTimeRef = useRef<number>(0);
-  const animationRef = useRef<number | undefined>(undefined);
+  const startRef = useRef(0);
+  const pauseRef = useRef(0);
+  const intervalRef = useRef<number | undefined>(undefined);
   const duration = 10000;
 
-  const update = () => {
-    animationRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTimeRef.current + pausedTimeRef.current;
+  const updateProgress = () => {
+    intervalRef.current = setInterval(() => {
+      const elapsed = Date.now() - startRef.current;
       const pct = Math.min((elapsed / duration) * 100, 100);
       setProgress(pct);
 
       if (pct >= 100) {
         setIsRunning(false);
+        clearInterval(intervalRef.current);
       }
     }, 10);
   };
 
   const start = () => {
+    if (isRunning) return;
+
     setIsRunning(true);
     setIsPaused(false);
-    startTimeRef.current = Date.now();
-    pausedTimeRef.current = 0;
-    update();
+    startRef.current = Date.now();
+    pauseRef.current = 0;
+    updateProgress();
   };
 
   const pause = () => {
+    if (!isRunning || isPaused) return;
+
     setIsPaused(true);
-    pausedTimeRef.current += Date.now() - startTimeRef.current;
-    if (animationRef.current) {
-      clearInterval(animationRef.current);
-      animationRef.current = undefined;
-    }
+    pauseRef.current = Date.now();
+    clearInterval(intervalRef.current);
   };
 
   const resume = () => {
+    if (!isRunning || !isPaused) return;
+
     setIsPaused(false);
-    startTimeRef.current = Date.now();
-    update();
+    startRef.current = Date.now() - (pauseRef.current - startRef.current);
+    pauseRef.current = 0;
+    updateProgress();
   };
 
   const reset = () => {
+    pause();
     setIsRunning(false);
-    setIsPaused(false);
     setProgress(0);
-    if (animationRef.current) {
-      clearInterval(animationRef.current);
-      animationRef.current = undefined;
-    }
   };
 
   useEffect(() => {
-    return () => clearInterval(animationRef.current);
+    return () => clearInterval(intervalRef.current);
   }, []);
 
   return (
@@ -74,7 +75,7 @@ export default function ProgressBar() {
       <div className="flex gap-2">
         <button
           onClick={start}
-          disabled={isRunning && !isPaused}
+          disabled={isRunning}
           className="flex-1 bg-green-500 text-white py-2 rounded hover:bg-green-600 disabled:opacity-50"
         >
           Start
@@ -88,7 +89,7 @@ export default function ProgressBar() {
         </button>
         <button
           onClick={resume}
-          disabled={!isPaused}
+          disabled={!isRunning || !isPaused}
           className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50"
         >
           Resume
